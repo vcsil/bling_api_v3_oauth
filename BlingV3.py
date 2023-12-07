@@ -5,7 +5,7 @@ Created on Mon Set 4 2023.
 
 @author: MatheusBruno
 """
-from dotenv import dotenv_values, find_dotenv
+from dotenv import get_key, find_dotenv, set_key
 from datetime import datetime, timedelta
 
 import requests
@@ -32,7 +32,7 @@ class BlingV3():
                 or
                 Bling().parmentHeader() whit .env
         """
-        global header
+        global header, env_path
 
         if path:
             credential = None
@@ -48,9 +48,10 @@ class BlingV3():
                 "\nclient_secret:", ""
             )
         else:
+            env_path = find_dotenv()
             listCredential = [
-                dotenv_values()["BLING_CLIENT_ID"],
-                dotenv_values()["BLING_CLIENT_SECRET"]
+                get_key(dotenv_path=env_path, key_to_get="BLING_CLIENT_ID"),
+                get_key(dotenv_path=env_path, key_to_get="BLING_CLIENT_SECRET")
             ]
 
         credentialbs4 = f"{listCredential[0]}:{listCredential[1]}"
@@ -215,11 +216,15 @@ class BlingV3():
         else:
             os.mkdir(f'{path}/credential')
 
-        self._saveCredentialText(
-            api=api,
-            path=f"{path}/credential/dice.txt",
-            mode="w"
-        )
+        hoursExpiration = self._calculateHour(api['expires_in'])
+
+        with open(path=f"{path}/credential/dice.txt", mode="w") as file:
+            file.write(f"""OAUTH_ACCESS_TOKEN={api['access_token']}
+                           OAUTH_EXPIRES_IN={api['expires_in']}
+                           OAUTH_HOURS_EXPIRATION={hoursExpiration}
+                           OAUTH_REFRESH_TOKEN={api['refresh_token']}
+                           OAUTH_SCOPE= {api['scope']}\n""".replace(
+                           '                           ', ''))
 
     def _saveENVCredential(self, api):
         """
@@ -230,38 +235,10 @@ class BlingV3():
         api : TYPE
             api json.
         """
-        path = find_dotenv()
-
-        self._saveCredentialText(
-            api,
-            path=path,
-            mode="a"
-        )
-
-    def _saveCredentialText(self, api, path: str, mode: str):
-        """
-        Open and modify the text file.
-
-        Parameters
-        ----------
-        api : TYPE
-            api json.
-        path : str
-            text directory.
-        mode : str
-            file modes in open().
-
-        Returns
-        -------
-        None.
-
-        """
         hoursExpiration = self._calculateHour(api['expires_in'])
 
-        with open(path, mode) as file:
-            file.write(f"""\n\nACCESS_TOKEN={api['access_token']}
-                           EXPIRES_IN={api['expires_in']}
-                           HOURS_EXPIRATION={hoursExpiration}
-                           REFRESH_TOKEN={api['refresh_token']}
-                           SCOPE= {api['scope']}""".replace(
-                           '                           ', ''))
+        set_key(env_path, "OAUTH_ACCESS_TOKEN", f"{api['access_token']}")
+        set_key(env_path, "OAUTH_EXPIRES_IN", f"{api['expires_in']}")
+        set_key(env_path, "OAUTH_HOURS_EXPIRATION", f"{hoursExpiration}")
+        set_key(env_path, "OAUTH_REFRESH_TOKEN", f"{api['refresh_token']}")
+        set_key(env_path, "OAUTH_SCOPE", f"{api['scope']}")
