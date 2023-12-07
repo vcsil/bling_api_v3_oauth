@@ -5,7 +5,7 @@ Created on Mon Set 4 2023.
 
 @author: MatheusBruno
 """
-from dotenv import dotenv_values
+from dotenv import dotenv_values, find_dotenv
 from datetime import datetime, timedelta
 
 import requests
@@ -78,7 +78,7 @@ class BlingV3():
         }
         return dice
 
-    def tokenApi(self, save_txt: bool = False):
+    def tokenApi(self, save_txt: bool = False, save_env: bool = False):
         """
         Return a list of objects containing the api data in case of right.
 
@@ -86,6 +86,8 @@ class BlingV3():
         ----------
         save_txt : bool
             Save the credentials to a txt file (True)
+        save_env : bool
+            Save credentials in .env
 
         [access_toke, expires_in, token_type, scope, refresh_token]
         in case of any error
@@ -110,10 +112,12 @@ class BlingV3():
             return api
         elif save_txt:
             self._saveTXTCredential(api)
+        elif save_env:
+            self._saveENVCredential(api)
 
         return self._objCredentials(api)
 
-    def refreshToken(self, refresh_token: str, save_txt: bool = False):
+    def refreshToken(self, refresh_token: str, save_txt: bool = False, save_env: bool = False):
         """
         Return the new access token and update the file with the credentials.
 
@@ -168,41 +172,6 @@ class BlingV3():
             'refresh_token': api['refresh_token']
         }
 
-    def _saveTXTCredential(self, api):
-        """
-        Save the credentials to a txt file in the "credential" directory.
-
-        Parameters
-        ----------
-        api : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        dict
-            DESCRIPTION.
-
-        """
-        path = os.getcwd()
-        hoursExpiration = self._calculateHour(api['expires_in'])
-        apiHoursNow = ((int(api['expires_in'])/60)/60)
-        systemHoursNow = datetime.datetime.now()
-        hoursExpiration = (
-            systemHoursNow + timedelta(hours=apiHoursNow)
-        )
-
-        if os.path.isdir(f"{path}/credential"):
-            pass
-        else:
-            os.mkdir(f'{path}/credential')
-
-        with open(f"{path}/credential/dice.txt", 'w') as file:
-            file.write(f"""access_token:{api['access_token']},
-                           \rexpires_in:{api['expires_in']},
-                           \rhoursExpiration:{hoursExpiration},
-                           \rrefresh_token:{api['refresh_token']}""")
-            file.close()
-
     def _calculateHour(self, expires_in: float):
         """
         Calculate exact time for token end.
@@ -226,3 +195,48 @@ class BlingV3():
             systemHoursNow + timedelta(hours=apiHoursNow)
         )
         return hoursExpiration
+
+    def _saveTXTCredential(self, api):
+        """
+        Save the credentials to a txt file in the "credential" directory.
+
+        Parameters
+        ----------
+        api : TYPE
+            api json.
+        """
+        path = os.getcwd()
+        hoursExpiration = self._calculateHour(api['expires_in'])
+
+        if os.path.isdir(f"{path}/credential"):
+            pass
+        else:
+            os.mkdir(f'{path}/credential')
+
+        with open(f"{path}/credential/dice.txt", 'w') as file:
+            file.write(f"""ACCESS_TOKEN:{api['access_token']},
+                           EXPIRES_IN:{api['expires_in']},
+                           HOURS_EXPIRATION:{hoursExpiration},
+                           REFRESH_TOKEN:{api['refresh_token']}""".replace(
+                           '                           ', ''))
+            file.close()
+
+    def _saveENVCredential(self, api):
+        """
+        Save the credentials to a txt file in the "credential" directory.
+
+        Parameters
+        ----------
+        api : TYPE
+            api json.
+        """
+        path = find_dotenv()
+        hoursExpiration = self._calculateHour(api['expires_in'])
+
+        with open(file=path, mode='a') as file:
+            file.write(f"""\nACCESS_TOKEN:{api['access_token']},
+                           EXPIRES_IN:{api['expires_in']},
+                           HOURS_EXPIRATION:{hoursExpiration},
+                           REFRESH_TOKEN:{api['refresh_token']}""".replace(
+                           '                           ', ''))
+            file.close()
