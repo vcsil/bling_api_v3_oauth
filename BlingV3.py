@@ -75,6 +75,7 @@ class BlingV3():
             'grant_type': 'authorization_code',
             'code': code
         }
+        return dice
 
     def tokenApi(self, save_txt: bool = False):
         """
@@ -126,10 +127,7 @@ class BlingV3():
             ::
                 obj = Bling().refreshToken("access_token")
         """
-        dice = {
-            'grant_type': 'refresh_token',
-            'refresh_token': refresh_token
-        }
+        dice = self.paramentCode(refresh_token)
 
         api = requests.post(
             'https://www.bling.com.br/Api/v3/oauth/token',
