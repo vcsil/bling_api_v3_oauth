@@ -6,11 +6,11 @@ Created on Mon Set 4 2023.
 @author: MatheusBruno
 """
 from dotenv import dotenv_values
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-import datetime
 import requests
 import base64
+import pytz
 import os
 
 
@@ -184,7 +184,7 @@ class BlingV3():
 
         """
         path = os.getcwd()
-        dateNow = datetime.date.today()
+        hoursExpiration = self._calculateHour(api['expires_in'])
         apiHoursNow = ((int(api['expires_in'])/60)/60)
         systemHoursNow = datetime.datetime.now()
         hoursExpiration = (
@@ -200,6 +200,29 @@ class BlingV3():
             file.write(f"""access_token:{api['access_token']},
                            \rexpires_in:{api['expires_in']},
                            \rhoursExpiration:{hoursExpiration},
-                           \rdateExpiration:{dateNow},
                            \rrefresh_token:{api['refresh_token']}""")
             file.close()
+
+    def _calculateHour(self, expires_in: float):
+        """
+        Calculate exact time for token end.
+
+        Parameters
+        ----------
+        expires_in : float
+            api['expires_in'].
+
+        Returns
+        -------
+        hoursExpiration : datetime
+            exact time
+
+        """
+        fuso_horario_brasil = pytz.timezone("America/Sao_Paulo")
+
+        apiHoursNow = ((int(expires_in)/60)/60)
+        systemHoursNow = datetime.now(fuso_horario_brasil)
+        hoursExpiration = (
+            systemHoursNow + timedelta(hours=apiHoursNow)
+        )
+        return hoursExpiration
