@@ -148,6 +148,8 @@ class BlingV3():
             return api
         elif save_txt:
             self._saveTXTCredential(api)
+        if save_env:
+            self._saveENVCredential(api)
 
         return self._objCredentials(api)
 
