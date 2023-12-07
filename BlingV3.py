@@ -117,7 +117,8 @@ class BlingV3():
 
         return self._objCredentials(api)
 
-    def refreshToken(self, refresh_token: str, save_txt: bool = False, save_env: bool = False):
+    def refreshToken(self, refresh_token: str, save_txt: bool = False,
+                     save_env: bool = False):
         """
         Return the new access token and update the file with the credentials.
 
@@ -153,10 +154,12 @@ class BlingV3():
         """
         Return credentials obj.
 
+        {access_token, expires_in, token_type, scope, refresh_token}
+
         Parameters
         ----------
         api : TYPE
-            DESCRIPTION.
+            api json.
 
         Returns
         -------
@@ -206,20 +209,17 @@ class BlingV3():
             api json.
         """
         path = os.getcwd()
-        hoursExpiration = self._calculateHour(api['expires_in'])
 
         if os.path.isdir(f"{path}/credential"):
             pass
         else:
             os.mkdir(f'{path}/credential')
 
-        with open(f"{path}/credential/dice.txt", 'w') as file:
-            file.write(f"""ACCESS_TOKEN:{api['access_token']},
-                           EXPIRES_IN:{api['expires_in']},
-                           HOURS_EXPIRATION:{hoursExpiration},
-                           REFRESH_TOKEN:{api['refresh_token']}""".replace(
-                           '                           ', ''))
-            file.close()
+        self._saveCredentialText(
+            api=api,
+            path=f"{path}/credential/dice.txt",
+            mode="w"
+        )
 
     def _saveENVCredential(self, api):
         """
@@ -231,12 +231,37 @@ class BlingV3():
             api json.
         """
         path = find_dotenv()
+
+        self._saveCredentialText(
+            api,
+            path=path,
+            mode="a"
+        )
+
+    def _saveCredentialText(self, api, path: str, mode: str):
+        """
+        Open and modify the text file.
+
+        Parameters
+        ----------
+        api : TYPE
+            api json.
+        path : str
+            text directory.
+        mode : str
+            file modes in open().
+
+        Returns
+        -------
+        None.
+
+        """
         hoursExpiration = self._calculateHour(api['expires_in'])
 
-        with open(file=path, mode='a') as file:
-            file.write(f"""\nACCESS_TOKEN:{api['access_token']},
-                           EXPIRES_IN:{api['expires_in']},
-                           HOURS_EXPIRATION:{hoursExpiration},
-                           REFRESH_TOKEN:{api['refresh_token']}""".replace(
+        with open(path, mode) as file:
+            file.write(f"""\n\nACCESS_TOKEN={api['access_token']}
+                           EXPIRES_IN={api['expires_in']}
+                           HOURS_EXPIRATION={hoursExpiration}
+                           REFRESH_TOKEN={api['refresh_token']}
+                           SCOPE= {api['scope']}""".replace(
                            '                           ', ''))
-            file.close()
