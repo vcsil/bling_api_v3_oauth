@@ -6,6 +6,7 @@ Created on Mon Set 4 2023.
 @author: MatheusBruno
 """
 from dotenv import dotenv_values
+from datetime import timedelta
 
 import datetime
 import requests
@@ -187,7 +188,7 @@ class BlingV3():
         apiHoursNow = ((int(api['expires_in'])/60)/60)
         systemHoursNow = datetime.datetime.now()
         hoursExpiration = (
-            int(systemHoursNow.strftime("%H")) + apiHoursNow
+            systemHoursNow + timedelta(hours=apiHoursNow)
         )
 
         if os.path.isdir(f"{path}/credential"):
