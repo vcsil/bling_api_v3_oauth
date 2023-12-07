@@ -76,9 +76,14 @@ class BlingV3():
             'code': code
         }
 
-    def tokenApi(self):
+    def tokenApi(self, save_txt: bool = False):
         """
         Return a list of objects containing the api data in case of right.
+
+        Parameters
+        ----------
+        save_txt : bool
+            Save the credentials to a txt file (True)
 
         [access_toke, expires_in, token_type, scope, refresh_token]
         in case of any error
@@ -93,46 +98,29 @@ class BlingV3():
         """
         api = requests.post(
             'https://www.bling.com.br/Api/v3/oauth/token',
-            headers=header, json=dice)
+            headers=header, json=dice
+        )
         situationStatusCode = api.status_code
-        print(api.status_code)
+        print(situationStatusCode)
         api = api.json()
 
         if situationStatusCode == 400:
             return api
-        else:
-            path = os.getcwd()
-            dateNow = datetime.date.today()
-            apiHoursNow = ((int(api['expires_in'])/60)/60)
-            systemHoursNow = datetime.datetime.now()
-            hoursExpiration = (
-                int(systemHoursNow.strftime("%H")) + apiHoursNow
-            )
+        elif save_txt:
+            self._saveTXTCredential(api)
 
-            if os.path.isdir(f"{path}/credential"):
-                pass
-            else:
-                os.mkdir(f'{path}/credential')
+        return self._objCredentials(api)
 
-            with open(f"{path}/credential/dice.txt", 'w') as file:
-                file.write(f"""access_token:{api['access_token']},
-                           \rexpires_in:{api['expires_in']},
-                           \rhoursExpiration:{hoursExpiration},
-                           \rdateExpiration:{dateNow},
-                           \rrefresh_token:{api['refresh_token']}""")
-                file.close()
-
-            return {
-                'access_token': api['access_token'],
-                'expires_in': api['expires_in'],
-                'token_type': api['token_type'],
-                'scope': api['scope'],
-                'refresh_token': api['refresh_token']
-            }
-
-    def refreshToken(self, refresh_token: str):
+    def refreshToken(self, refresh_token: str, save_txt: bool = False):
         """
         Return the new access token and update the file with the credentials.
+
+        Parameters
+        ----------
+        refresh_token : str
+            Crendital refresh token
+        save_txt : bool
+            Save the credentials to a txt file (True) or save to .env (False)
 
         :Usage:
             ::
@@ -143,42 +131,76 @@ class BlingV3():
             'refresh_token': refresh_token
         }
 
-        apiStatus = requests.post(
+        api = requests.post(
             'https://www.bling.com.br/Api/v3/oauth/token',
             headers=header, json=dice
         )
+        situationStatusCode = api.status_code
+        print(situationStatusCode)
+        api = api.json()
 
-        api = apiStatus.json()
-
-        if apiStatus.status_code == 400:
+        if situationStatusCode == 400:
             return api
+        elif save_txt:
+            self._saveTXTCredential(api)
+
+        return self._objCredentials(api)
+
+    def _objCredentials(self, api):
+        """
+        Return credentials obj.
+
+        Parameters
+        ----------
+        api : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        dict
+            DESCRIPTION.
+
+        """
+        return {
+            'access_token': api['access_token'],
+            'expires_in': api['expires_in'],
+            'token_type': api['token_type'],
+            'scope': api['scope'],
+            'refresh_token': api['refresh_token']
+        }
+
+    def _saveTXTCredential(self, api):
+        """
+        Save the credentials to a txt file in the "credential" directory.
+
+        Parameters
+        ----------
+        api : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        dict
+            DESCRIPTION.
+
+        """
+        path = os.getcwd()
+        dateNow = datetime.date.today()
+        apiHoursNow = ((int(api['expires_in'])/60)/60)
+        systemHoursNow = datetime.datetime.now()
+        hoursExpiration = (
+            int(systemHoursNow.strftime("%H")) + apiHoursNow
+        )
+
+        if os.path.isdir(f"{path}/credential"):
+            pass
         else:
-            path = os.getcwd()
-            dateNow = datetime.date.today()
-            apiHoursNow = ((int(api['expires_in'])/60)/60)
-            systemHoursNow = datetime.datetime.now()
-            hoursExpiration = (
-                int(systemHoursNow.strftime("%H")) + apiHoursNow
-            )
+            os.mkdir(f'{path}/credential')
 
-            if os.path.isdir(f"{path}/credential"):
-                pass
-            else:
-                os.mkdir(f'{path}/credential')
-
-            with open(f"{path}/credential/dice.txt", 'w') as file:
-                file.write(f"""access_token:{api['access_token']},
+        with open(f"{path}/credential/dice.txt", 'w') as file:
+            file.write(f"""access_token:{api['access_token']},
                            \rexpires_in:{api['expires_in']},
                            \rhoursExpiration:{hoursExpiration},
                            \rdateExpiration:{dateNow},
                            \rrefresh_token:{api['refresh_token']}""")
-                file.close()
-
-            return {
-                'access_token': api['access_token'],
-                'expires_in': api['expires_in'],
-                'token_type': api['token_type'],
-                'scope': api['scope'],
-                'refresh_token': api['refresh_token']
-            }
-
+            file.close()
