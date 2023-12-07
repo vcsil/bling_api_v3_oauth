@@ -110,9 +110,9 @@ class BlingV3():
 
         if situationStatusCode == 400:
             return api
-        elif save_txt:
+        if save_txt:
             self._saveTXTCredential(api)
-        elif save_env:
+        if save_env:
             self._saveENVCredential(api)
 
         return self._objCredentials(api)
