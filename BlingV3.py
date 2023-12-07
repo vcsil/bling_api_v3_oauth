@@ -17,9 +17,13 @@ import os
 class BlingV3():
     """Facilitate and obtain the Bling API V3 Access Token."""
 
-    def parmentHeader(self, path: str = None):
+    def parmentHeader(self, path: str = None, use_txt=False):
         """
-        Enter the path of the txt file with the client_id and client_secret.
+        Enter the path of the txt or .env file with the client id and secret.
+
+        The method creates the request header. To do this, it searches the
+        directory for the file containing the client's 'secret' and 'id'.
+        When use_txt is 'True' it does not search in '.env'.
 
         Example:
         -------
@@ -28,13 +32,14 @@ class BlingV3():
 
         :Usage:
             ::
-                Bling().parmentHeader('/home/user/document/credential.txt')
+                BlingV3().parmentHeader(
+                    '/home/user/document/credential.txt', True)
                 or
-                Bling().parmentHeader() whit .env
+                BlingV3().parmentHeader() whit .env
         """
         global header, env_path
 
-        if path:
+        if use_txt:
             credential = None
 
             with open(path, 'r') as file:
