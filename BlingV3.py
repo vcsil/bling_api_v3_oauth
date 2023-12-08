@@ -74,7 +74,10 @@ class BlingV3():
             'Authorization': f'Basic {credentialbs4}'
         }
 
-    def paramentCode(self, code: str):
+    def paramentCode(self,
+                     code: str,
+                     is_refresh_token: bool = False,
+                     ) -> Dict[str, Optional[str]]:
         """
         Provide url code.
 
@@ -93,16 +96,23 @@ class BlingV3():
         }
         return dice
 
-    def tokenApi(self, save_txt: bool = False, save_env: bool = False):
+    def tokenApi(self,
+                 authorization_code: str,
+                 save_txt: bool = False,
+                 save_env: bool = False,
+                 is_refresh_token: bool = False,
+                 ) -> Dict[str, Optional[str]]:
         """
         Return a list of objects containing the api data in case of right.
 
         Parameters
         ----------
+        authorization_code : str
+            Authorization code ou token refresh
         save_txt : bool
             Save the credentials to a txt file (True)
         save_env : bool
-            Save credentials in .env
+            Save credentials in .env (True)
 
         [access_toke, expires_in, token_type, scope, refresh_token]
         in case of any error
@@ -112,7 +122,6 @@ class BlingV3():
 
         :Usage:
             ::
-
                 obj = Bling().tokenApi()
         """
         dice = self.paramentCode(authorization_code, is_refresh_token)
@@ -122,7 +131,7 @@ class BlingV3():
             headers=header, json=dice
         )
         situationStatusCode = api.status_code
-        print(situationStatusCode)
+        # print(situationStatusCode)
         api = api.json()
 
         if situationStatusCode == 400:
@@ -162,7 +171,7 @@ class BlingV3():
             'refresh_token': api['refresh_token']
         }
 
-    def _calculateHour(self, expires_in: float):
+    def _calculateHour(self, expires_in: float) -> datetime:
         """
         Calculate exact time for token end.
 
@@ -204,7 +213,7 @@ class BlingV3():
 
         hoursExpiration = self._calculateHour(api['expires_in'])
 
-        with open(path=f"{path}/credential/dice.txt", mode="w") as file:
+        with open(file=f"{path}/credential/dice.txt", mode="w") as file:
             file.write(f"""OAUTH_ACCESS_TOKEN={api['access_token']}
                            OAUTH_EXPIRES_IN={api['expires_in']}
                            OAUTH_HOURS_EXPIRATION={hoursExpiration}
@@ -309,6 +318,8 @@ def oauth_blingV3(
         param_dict[key] = value
 
     BlingV3().parmentHeader()
-    BlingV3().paramentCode(param_dict['code'])
 
-    return BlingV3().tokenApi(save_txt=save_txt, save_env=save_env)
+    return BlingV3().tokenApi(authorization_code=param_dict['code'],
+                              save_txt=save_txt,
+                              save_env=save_env,
+                              is_refresh_token=False)
