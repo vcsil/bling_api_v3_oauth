@@ -3,10 +3,15 @@
 """
 Created on Mon Set 4 2023.
 
-@author: MatheusBruno
+@author: vcsil
 """
+from typing import Dict, Optional
 from dotenv import get_key, find_dotenv, set_key
 from datetime import datetime, timedelta
+
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
 
 import requests
 import base64
@@ -249,3 +254,87 @@ class BlingV3():
         set_key(env_path, "OAUTH_HOURS_EXPIRATION", f"{hoursExpiration}")
         set_key(env_path, "OAUTH_REFRESH_TOKEN", f"{api['refresh_token']}")
         set_key(env_path, "OAUTH_SCOPE", f"{api['scope']}")
+
+
+def oauth_blingV3(
+    save_txt: bool = False,
+    save_env: bool = True,
+) -> Dict[str, Optional[str]]:
+    """
+    Obtain the access token automatically. .env or txt required.
+
+    Automates the connection and authorization of the api like bling and
+    returns the access token, uses selenium
+
+    Parameters
+    ----------
+    save_txt : bool, optional
+        True if you want to save the credentials in a txt. Default is False.
+    save_env : bool, optional
+        True if you want to save the credentials in a .env. Default is True.
+
+    Returns
+    -------
+    Dict[str, Optional[str]]
+        Dict with ['access_token'], ['expires_in'], ['token_type'], ['scope'],
+        ['refresh_token']
+    """
+    env_path = find_dotenv()
+
+    # Caminho para o driver do navegador
+    driver_path = 'https://www.bling.com.br/Api/v3/oauth/authorize?'
+    response_type = 'response_type=code&'
+    client_id = 'client_id='
+    client_id += get_key(dotenv_path=env_path, key_to_get="BLING_CLIENT_ID")
+    state = '&state=vasco'
+    driver_path += response_type + client_id + state
+
+    # Inicializar o navegador
+    driver = webdriver.Chrome()
+    driver.implicitly_wait(2)
+    driver.get(driver_path)
+
+    # Login Bling
+    bling_usuario = get_key(dotenv_path=env_path,
+                            key_to_get='BLING_USUARIO_TESTE')
+    bling_senha = get_key(dotenv_path=env_path,
+                          key_to_get='BLING_SENHA_USUARIO_TESTE')
+
+    # Navegando
+    campo_usuario = driver.find_element(
+        By.XPATH,
+        "/html/body/div/div/div/form/div[1]/input")
+    campo_usuario.send_keys(bling_usuario)
+
+    campo_senha = driver.find_element(
+        By.XPATH,
+        "/html/body/div/div/div/form/div[2]/input")
+    campo_senha.send_keys(bling_senha)
+
+    botao_entrar = driver.find_element(
+        By.XPATH,
+        "/html/body/div/div/div/form/div[5]/button")
+    botao_entrar.click()
+    try:
+        botao_autorizar = driver.find_element(
+            By.XPATH,
+            "/html/body/div/div/div/div/div[6]/form/button[2]")
+        botao_autorizar.click()
+    except NoSuchElementException:
+        print("Login ja foi autizado\n")
+    finally:
+        # O Authorization code é enviado por query string
+        link_final = driver.current_url
+        driver.quit()
+
+    query_string = link_final.split("?")[1]
+    query_string = query_string.split("&")
+    param_dict = {}
+    for param in query_string:
+        key, value = param.split("=")
+        param_dict[key] = value
+
+    BlingV3().parmentHeader()
+    BlingV3().paramentCode(param_dict['code'])
+
+    return BlingV3().tokenApi(save_txt=save_txt, save_env=save_env)
