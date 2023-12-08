@@ -82,9 +82,13 @@ class BlingV3():
             ::
                 Bling().paramentCode("8337d4fd498508b9225b695f3bdf0ad086fb8bcc")
         """
-        global dice
+        if is_refresh_token:
+            grant_type = 'refresh_token'
+        else:
+            grant_type = 'authorization_code'
+
         dice = {
-            'grant_type': 'authorization_code',
+            'grant_type': grant_type,
             'code': code
         }
         return dice
@@ -111,6 +115,8 @@ class BlingV3():
 
                 obj = Bling().tokenApi()
         """
+        dice = self.paramentCode(authorization_code, is_refresh_token)
+
         api = requests.post(
             'https://www.bling.com.br/Api/v3/oauth/token',
             headers=header, json=dice
@@ -128,42 +134,10 @@ class BlingV3():
 
         return self._objCredentials(api)
 
-    def refreshToken(self, refresh_token: str, save_txt: bool = False,
-                     save_env: bool = False):
-        """
-        Return the new access token and update the file with the credentials.
-
-        Parameters
-        ----------
-        refresh_token : str
-            Crendital refresh token
-        save_txt : bool
-            Save the credentials to a txt file (True) or save to .env (False)
-
-        :Usage:
-            ::
-                obj = Bling().refreshToken("access_token")
-        """
-        dice = self.paramentCode(refresh_token)
-
-        api = requests.post(
-            'https://www.bling.com.br/Api/v3/oauth/token',
-            headers=header, json=dice
-        )
-        situationStatusCode = api.status_code
-        print(situationStatusCode)
-        api = api.json()
-
-        if situationStatusCode == 400:
-            return api
-        elif save_txt:
-            self._saveTXTCredential(api)
-        if save_env:
-            self._saveENVCredential(api)
-
-        return self._objCredentials(api)
-
-    def _objCredentials(self, api):
+    def _objCredentials(
+            self,
+            api: Dict[str, Optional[str]],
+            ) -> Dict[str, Optional[str]]:
         """
         Return credentials obj.
 
