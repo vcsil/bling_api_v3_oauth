@@ -73,6 +73,7 @@ class BlingV3():
             'Accept': '1.0',
             'Authorization': f'Basic {credentialbs4}'
         }
+        return header
 
     def paramentCode(self,
                      code: str,
@@ -87,12 +88,14 @@ class BlingV3():
         """
         if is_refresh_token:
             grant_type = 'refresh_token'
+            name_code = 'refresh_token'
         else:
             grant_type = 'authorization_code'
+            name_code = 'code'
 
         dice = {
             'grant_type': grant_type,
-            'code': code
+            name_code: code
         }
         return dice
 
@@ -124,6 +127,7 @@ class BlingV3():
             ::
                 obj = Bling().tokenApi()
         """
+        header = self.parmentHeader()
         dice = self.paramentCode(authorization_code, is_refresh_token)
 
         api = requests.post(
@@ -317,9 +321,19 @@ def oauth_blingV3(
         key, value = param.split("=")
         param_dict[key] = value
 
-    BlingV3().parmentHeader()
-
     return BlingV3().tokenApi(authorization_code=param_dict['code'],
                               save_txt=save_txt,
                               save_env=save_env,
                               is_refresh_token=False)
+
+def oauth_refresh_blingV3(
+        refresh_token: str,
+        save_txt: bool = False,
+        save_env: bool = True
+) -> Dict[str, Optional[str]]:
+    return BlingV3().tokenApi(
+        authorization_code=refresh_token,
+        save_txt=save_txt,
+        save_env=save_env,
+        is_refresh_token=True
+    )
