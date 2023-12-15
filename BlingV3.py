@@ -14,9 +14,12 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 import requests
+import logging
 import base64
 import pytz
 import os
+
+log = logging.getLogger(__name__)
 
 
 class BlingV3():
@@ -139,12 +142,14 @@ class BlingV3():
         api = api.json()
 
         if situationStatusCode == 400:
+            log.info(f"Request failed. code: {situationStatusCode}")
             return api
         if save_txt:
             self._saveTXTCredential(api)
         if save_env:
             self._saveENVCredential(api)
 
+        log.info("Created new credentials")
         return self._objCredentials(api)
 
     def _objCredentials(
@@ -224,6 +229,7 @@ class BlingV3():
                            OAUTH_REFRESH_TOKEN={api['refresh_token']}
                            OAUTH_SCOPE= {api['scope']}\n""".replace(
                            '                           ', ''))
+        log.info('Finish')
 
     def _saveENVCredential(self, api):
         """
@@ -241,6 +247,7 @@ class BlingV3():
         set_key(env_path, "OAUTH_HOURS_EXPIRATION", f"{hoursExpiration}")
         set_key(env_path, "OAUTH_REFRESH_TOKEN", f"{api['refresh_token']}")
         set_key(env_path, "OAUTH_SCOPE", f"{api['scope']}")
+        log.info('Finish')
 
 
 def oauth_blingV3(
@@ -267,7 +274,7 @@ def oauth_blingV3(
         ['refresh_token']
     """
     env_path = find_dotenv()
-
+    log.info('Selenium init')
     # Caminho para o driver do navegador
     driver_path = 'https://www.bling.com.br/Api/v3/oauth/authorize?'
     response_type = 'response_type=code&'
@@ -315,22 +322,26 @@ def oauth_blingV3(
         driver.quit()
 
     query_string = link_final.split("?")[1]
+    log.info('Selenium Finish')
     query_string = query_string.split("&")
     param_dict = {}
     for param in query_string:
         key, value = param.split("=")
         param_dict[key] = value
-
+    log.info('Send credentials')
     return BlingV3().tokenApi(authorization_code=param_dict['code'],
                               save_txt=save_txt,
                               save_env=save_env,
                               is_refresh_token=False)
+
 
 def oauth_refresh_blingV3(
         refresh_token: str,
         save_txt: bool = False,
         save_env: bool = True
 ) -> Dict[str, Optional[str]]:
+    """Retorna token de acesso a patir do refresh token."""
+    log.info('Init')
     return BlingV3().tokenApi(
         authorization_code=refresh_token,
         save_txt=save_txt,
