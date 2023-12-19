@@ -356,7 +356,18 @@ def oauth_refresh_blingV3(
 
 if __name__ == '__main__':
     try:
-        oauth_blingV3()
+        import sys
+        argvs = sys.argv
+
+        if len(argvs) == 1:
+            oauth_blingV3()
+        elif (argvs[1] == "create"):
+            oauth_blingV3()
+        elif argvs[1] == "refresh":
+            oauth_refresh_blingV3()
+        else:
+            raise ValueError(f"Function not found: {argvs[1]}")
+
     except Exception as e:
         print(f"Erro: {e}")
     finally:
