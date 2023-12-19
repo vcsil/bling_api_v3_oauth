@@ -290,9 +290,9 @@ def oauth_blingV3(
 
     # Login Bling
     bling_usuario = get_key(dotenv_path=env_path,
-                            key_to_get='BLING_USUARIO_TESTE')
+                            key_to_get='BLING_USUARIO')
     bling_senha = get_key(dotenv_path=env_path,
-                          key_to_get='BLING_SENHA_USUARIO_TESTE')
+                          key_to_get='BLING_SENHA_USUARIO')
 
     # Navegando
     campo_usuario = driver.find_element(
