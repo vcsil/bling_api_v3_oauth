@@ -356,4 +356,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Erro: {e}")
     finally:
-        input("Aperte qualquer tecla.")
+        input("Aperte enter.")
