@@ -1,7 +1,0 @@
-name: bling_api_v3_oauth
-channels:
-  - defaults
-dependencies:
-  - python-dotenv
-  - selenium
-prefix: ~/anaconda3/envs/bling_api_v3_oauth
