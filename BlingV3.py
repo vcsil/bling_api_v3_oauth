@@ -348,3 +348,12 @@ def oauth_refresh_blingV3(
         save_env=save_env,
         is_refresh_token=True
     )
+
+
+if __name__ == '__main__':
+    try:
+        oauth_blingV3()
+    except Exception as e:
+        print(f"Erro: {e}")
+    finally:
+        input("Aperte qualquer tecla.")
