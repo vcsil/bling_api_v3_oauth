@@ -356,6 +356,7 @@ def oauth_refresh_blingV3(
 
 if __name__ == '__main__':
     try:
+        from pathlib import Path
         import sys
         argvs = sys.argv
 
@@ -364,11 +365,13 @@ if __name__ == '__main__':
         elif (argvs[1] == "create"):
             oauth_blingV3()
         elif argvs[1] == "refresh":
-            oauth_refresh_blingV3()
+            refresh_token = get_key(dotenv_path=Path('./.env'),
+                                    key_to_get="OAUTH_REFRESH_TOKEN")
+            oauth_refresh_blingV3(refresh_token)
         else:
             raise ValueError(f"Function not found: {argvs[1]}")
 
     except Exception as e:
-        print(f"Erro: {e}")
+        print(f"Error: {e}")
     finally:
         input("Aperte enter.")
