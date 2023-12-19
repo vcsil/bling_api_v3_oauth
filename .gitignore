@@ -6,3 +6,4 @@
 *lertxt.py
 *main.py
 __pycache__/*
+.env
