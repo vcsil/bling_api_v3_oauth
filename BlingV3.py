@@ -315,7 +315,7 @@ def oauth_blingV3(
             "/html/body/div/div/div/div/div[6]/form/button[2]")
         botao_autorizar.click()
     except NoSuchElementException:
-        print("Login ja foi autizado\n")
+        print("Login has already been authorized\n")
     finally:
         # O Authorization code é enviado por query string
         link_final = driver.current_url
@@ -329,10 +329,13 @@ def oauth_blingV3(
         key, value = param.split("=")
         param_dict[key] = value
     log.info('Send credentials')
-    return BlingV3().tokenApi(authorization_code=param_dict['code'],
-                              save_txt=save_txt,
-                              save_env=save_env,
-                              is_refresh_token=False)
+
+    obj_credentials = BlingV3().tokenApi(authorization_code=param_dict['code'],
+                                         save_txt=save_txt, save_env=save_env,
+                                         is_refresh_token=False)
+    print("Created credentials\n")
+
+    return obj_credentials
 
 
 def oauth_refresh_blingV3(
@@ -342,12 +345,13 @@ def oauth_refresh_blingV3(
 ) -> Dict[str, Optional[str]]:
     """Retorna token de acesso a patir do refresh token."""
     log.info('Init')
-    return BlingV3().tokenApi(
-        authorization_code=refresh_token,
-        save_txt=save_txt,
-        save_env=save_env,
-        is_refresh_token=True
-    )
+
+    obj_credentials = BlingV3().tokenApi(authorization_code=refresh_token,
+                                         save_txt=save_txt, save_env=save_env,
+                                         is_refresh_token=True)
+    print("Updated credentials\n")
+
+    return obj_credentials
 
 
 if __name__ == '__main__':
