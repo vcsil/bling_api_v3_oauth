@@ -9,9 +9,9 @@ from typing import Dict, Optional
 from dotenv import get_key, find_dotenv, set_key
 from datetime import datetime, timedelta
 
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+from selenium import webdriver
 
 import requests
 import logging
@@ -297,17 +297,17 @@ def oauth_blingV3(
     # Navegando
     campo_usuario = driver.find_element(
         By.XPATH,
-        "/html/body/div/div/div/form/div[1]/input")
+        "/html/body/div/div/div/form/div[2]/input")
     campo_usuario.send_keys(bling_usuario)
 
     campo_senha = driver.find_element(
         By.XPATH,
-        "/html/body/div/div/div/form/div[2]/input")
+        "/html/body/div/div/div/form/div[3]/input")
     campo_senha.send_keys(bling_senha)
 
     botao_entrar = driver.find_element(
         By.XPATH,
-        "/html/body/div/div/div/form/div[5]/button")
+        "/html/body/div/div/div/form/div[6]/button")
     botao_entrar.click()
     try:
         botao_autorizar = driver.find_element(
