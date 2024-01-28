@@ -10,6 +10,8 @@ from dotenv import get_key, find_dotenv, set_key
 from datetime import datetime, timedelta
 
 from selenium.common.exceptions import NoSuchElementException
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium import webdriver
@@ -285,7 +287,8 @@ def oauth_blingV3(
     driver_path += response_type + client_id + state
 
     # Inicializar o navegador
-    driver = webdriver.Chrome(options=set_chrome_options())
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=set_chrome_options())
     driver.implicitly_wait(2)
     driver.get(driver_path)
 
